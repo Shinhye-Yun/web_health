@@ -1,10 +1,10 @@
 package app
 
 import (
-    "log"
-    "net/http"
-	"time"
+	"log"
+	"net/http"
 	"strings"
+	"time"
 )
 
 // Add "https://" prefix if missing
@@ -17,7 +17,7 @@ func ifHttps(s string) string {
 }
 
 // Get http status for a given url
-func GetHttpStatus(url string) {
+func getHttpStatus(url string) {
     var (
         err      error
         res		*http.Response
@@ -25,7 +25,7 @@ func GetHttpStatus(url string) {
     )
 
 	if len(url) == 0 {
-		log.Println("GIVEN url IS EMPTY")
+		log.Printf("[ERROR] GIVEN url IS EMPTY")
 		return
 	}
 
@@ -39,7 +39,7 @@ func GetHttpStatus(url string) {
     for retries > 0 {
 		res, err = c.Get(url)
         if err != nil {
-            log.Println(url, err)
+            log.Printf("[ERROR] Cannot get status from %s: %v", url, err)
             retries -= 1
         } else {
 			//TODO
@@ -51,17 +51,23 @@ func GetHttpStatus(url string) {
 		// Print status code
 		status := res.StatusCode
 		if status < 200{
-			log.Println(url, "info", status)
+			log.Printf("[INFO] %s - Status info %d\n", url, status)
 		} else if status >= 200 && status < 300{
-			log.Println(url, "success", status)
+			log.Printf("[INFO] %s - Status success %d", url, status)
 		} else if status >= 300 && status < 400{
-			log.Println(url, "redirect", status)
+			log.Printf("[INFO] %s - Status redirect %d", url, status)
 		} else if status >= 400 && status < 500{
-			log.Println(url, "client error", status)
+			log.Printf("[INFO] %s - Status client error %d", url, status)
 			//TODO send notification
 		} else {
-			log.Println(url, "server error", status)
+			log.Printf("[INFO] %s - Status server error %d", url, status)
 			//TODO
 		}
     }
+}
+
+func CheckStatus(domain string, servers []string){
+	for i := 0; i < len(servers); i++ {
+		getHttpStatus("https://"+servers[i]+domain)
+	}
 }
